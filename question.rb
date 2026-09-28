@@ -13,7 +13,7 @@ class Quiz
     questions.each do |q| 
       reply = q.ask
       if q.correct?(reply)
-        puts "rätt"
+        puts "Rätt svar!"
       else
         puts "fel :("
       end
@@ -35,7 +35,6 @@ class Question
 
   def ask
     puts prompt
-    # hint
     gets.chomp
   end
 
@@ -54,15 +53,18 @@ class Question
 end
 
 class MultipleChoice < Question
+
+  def initialize(prompt, answer, alternatives)
+    super(prompt, answer)
+    @alternatives = alternatives
+  end
+
   def ask
-    alternatives = ["stockholm", "copenhagen", "gothenburg"]
-    #TODO: lägg till i databasen, varje fråga borde ha svar, inte generiska.
-    i = 0
-    alternatives.each do |a| 
-      i += 1
-      p i.to_s + ": " + a 
+    puts prompt
+    @alternatives.each_with_index do |alternative, i| 
+      p (i+1).to_s + ": " + alternative
     end
-    super
+    gets.chomp
   end
 end
 
@@ -71,12 +73,23 @@ def start
   db.results_as_hash = true
 
   rows = db.execute("SELECT prompt, answer FROM questions")
+  multiple_rows = db.execute("SELECT prompt, answer, q_id FROM multiple_choice_questions")
+  
 
   questions = rows.map do |row|
-    MultipleChoice.new(row["prompt"], row["answer"])
+    Question.new(row["prompt"], row["answer"])
   end
 
-  Quiz.new(questions).run
+  multiple_choice_questions = multiple_rows.map do |row|
+    alternatives = db.execute(
+      "SELECT answer FROM multiple_choice_answers WHERE q_id = ?",
+      [row["q_id"]]
+    ).map { |r| r["answer"] }
+
+    MultipleChoice.new(row["prompt"], row["answer"], alternatives)
+  end
+
+  Quiz.new(questions + multiple_choice_questions).run
 end
 
 start

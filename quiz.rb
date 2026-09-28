@@ -1,6 +1,7 @@
 require_relative "question"
 
 questions = [
+  MultipleChoice.new("Vad är huvudstaden i Sverige?", "Stockholm", ["Oslo", "Stockholm", "Köpenhamn"]),
   Question.new("Vad heter huvudstaden i Norge?", "Oslo"),
   Question.new("Vilket år släpptes Ruby 1.0?", "1996"),
   Question.new("Vad svarar 5.class?", "Integer"),
