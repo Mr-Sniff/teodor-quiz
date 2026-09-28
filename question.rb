@@ -82,9 +82,7 @@ def start
 
   multiple_choice_questions = multiple_rows.map do |row|
     alternatives = db.execute(
-      "SELECT answer FROM multiple_choice_answers WHERE q_id = ?",
-      [row["q_id"]]
-    ).map { |r| r["answer"] }
+      "SELECT answer FROM multiple_choice_answers WHERE q_id = ?", [row["q_id"]]).map { |r| r["answer"] }
 
     MultipleChoice.new(row["prompt"], row["answer"], alternatives)
   end
