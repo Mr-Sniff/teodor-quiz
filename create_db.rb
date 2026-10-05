@@ -5,6 +5,7 @@ db = SQLite3::Database.new('quiz.db')
 db.execute('DROP TABLE IF EXISTS questions')
 db.execute('DROP TABLE IF EXISTS multiple_choice_questions')
 db.execute('DROP TABLE IF EXISTS multiple_choice_answers')
+db.execute('DROP TABLE IF EXISTS self_graded_questions')
  
 db.execute <<-SQL
   CREATE TABLE questions (
@@ -25,6 +26,14 @@ SQL
 db.execute <<-SQL
   CREATE TABLE multiple_choice_answers (
     q_id TEXT NOT NULL,
+    answer TEXT NOT NULL
+  );
+SQL
+
+
+db.execute <<-SQL
+  CREATE TABLE self_graded_questions (
+    prompt TEXT NOT NULL,
     answer TEXT NOT NULL
   );
 SQL
@@ -58,5 +67,16 @@ answer_rows = [
 
 answer_rows.each do  |q_id, answer|  
   db.execute("INSERT INTO multiple_choice_answers (q_id, answer) VALUES (?, ?)", [q_id, answer])
+end
+
+
+
+self_graded_rows = [
+  ["Vad är huvudstaden i Sverige?", "Stockholm"],
+  ["Vad är mitt efternamn", "Boestad"],
+]
+ 
+self_graded_rows.each do |prompt, answer|
+  db.execute("INSERT INTO self_graded_questions (prompt, answer) VALUES (?, ?)", [prompt, answer])
 end
 

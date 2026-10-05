@@ -1,26 +1,5 @@
 require 'sqlite3'
-
-class Quiz
-  attr_reader :questions
-
-  def initialize(questions)
-    @questions = questions
-    raise ArgumentError, "questions must be array" if questions.class != Array
-
-  end
-
-  def run
-    questions.each do |q| 
-      reply = q.ask
-      if q.correct?(reply)
-        puts "Rätt svar!"
-      else
-        puts "fel :("
-      end
-    end
-  end
-
-end 
+require_relative 'main'
 
 
 class Question
@@ -57,6 +36,7 @@ class MultipleChoice < Question
   def initialize(prompt, answer, alternatives)
     super(prompt, answer)
     @alternatives = alternatives
+    @answer = answer
   end
 
   def ask
@@ -66,28 +46,16 @@ class MultipleChoice < Question
     end
     gets.chomp
   end
+
+  def correct?(reply)
+    super || (@alternatives.index(@answer)+1).to_s == reply
+  end
 end
 
-def start
-  db = SQLite3::Database.new("quiz.db")
-  db.results_as_hash = true
-
-  rows = db.execute("SELECT prompt, answer FROM questions")
-  multiple_rows = db.execute("SELECT prompt, answer, q_id FROM multiple_choice_questions")
-  
-
-  questions = rows.map do |row|
-    Question.new(row["prompt"], row["answer"])
+class SelfGraded < Question
+  def correct?(reply)
+    p "Svaret var: " + @answer
+    p "Skulle du säga att det var korrekt? (Y/N)"
+    gets.chomp.downcase == "y"
   end
-
-  multiple_choice_questions = multiple_rows.map do |row|
-    alternatives = db.execute(
-      "SELECT answer FROM multiple_choice_answers WHERE q_id = ?", [row["q_id"]]).map { |r| r["answer"] }
-
-    MultipleChoice.new(row["prompt"], row["answer"], alternatives)
-  end
-
-  Quiz.new(questions + multiple_choice_questions).run
 end
-
-start
